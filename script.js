@@ -110,7 +110,12 @@ const chart = new Chart(ctx, {
         },
         ticks: {
           stepSize: 5,
-          callback: (value) => String(Math.round(value))
+          callback: (value) => {
+            if (typeof value === "number" && Number.isFinite(value)) {
+              return Math.round(value).toString();
+            }
+            return String(value).replace(/[^\d]/g, "");
+          }
         },
         grid: {
           color: "rgba(28, 27, 25, 0.06)"
