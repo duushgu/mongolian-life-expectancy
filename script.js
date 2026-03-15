@@ -15,6 +15,7 @@ const men = [
   { x: 2005, y: 62.3 },
   { x: 2010, y: 64.1 },
   { x: 2015, y: 65.9 },
+  { x: 2018, y: 66.11 },
   { x: 2021, y: 66.9 },
   { x: 2024, y: 67.9 },
   { x: 2025, y: 68.3 }
@@ -37,6 +38,7 @@ const women = [
   { x: 2005, y: 69.5 },
   { x: 2010, y: 72.5 },
   { x: 2015, y: 75.5 },
+  { x: 2018, y: 75.78 },
   { x: 2021, y: 75.3 },
   { x: 2024, y: 77.1 },
   { x: 2025, y: 77.5 }
@@ -91,7 +93,10 @@ const chart = new Chart(ctx, {
         callbacks: {
           label: (context) => {
             const value = context.parsed.y;
-            const formatted = value.toFixed(1).replace(".", ",");
+            const formatted = value.toLocaleString("de-DE", {
+              minimumFractionDigits: 1,
+              maximumFractionDigits: 2
+            });
             return `${context.dataset.label}: ${formatted} Jahre`;
           }
         }
