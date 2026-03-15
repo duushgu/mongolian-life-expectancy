@@ -94,89 +94,59 @@ const colorWithAlpha = (color, alpha) => {
   return color;
 };
 
-let chart;
-
-const totalDuration = 2200;
-const maxPoints = Math.max(men.length, women.length, diff.length);
-const delayBetweenPoints = totalDuration / maxPoints;
-
-const buildGrowthAnimation = () => {
-  const xStarted = new WeakSet();
-  const yStarted = new WeakSet();
-  const rStarted = new WeakSet();
-  return {
-    x: {
-      type: "number",
-      easing: "linear",
-      duration: delayBetweenPoints,
-      from: NaN,
-      delay(context) {
-        if (context.type !== "data") {
-          return 0;
-        }
-        if (xStarted.has(context)) {
-          return 0;
-        }
-        xStarted.add(context);
-        return context.index * delayBetweenPoints;
-      }
-    },
-    radius: {
-      type: "number",
-      easing: "linear",
-      duration: delayBetweenPoints,
-      from: 0,
-      delay(context) {
-        if (context.type !== "data") {
-          return 0;
-        }
-        if (rStarted.has(context)) {
-          return 0;
-        }
-        rStarted.add(context);
-        return context.index * delayBetweenPoints;
-      }
-    },
-    y: {
-      type: "number",
-      easing: "linear",
-      duration: delayBetweenPoints,
-      from(context) {
-        if (context.index === 0) {
-          return context.chart.scales.y.getPixelForValue(context.dataset.data[0].y);
-        }
-        const meta = context.chart.getDatasetMeta(context.datasetIndex);
-        return meta.data[context.index - 1].getProps(["y"], true).y;
-      },
-      delay(context) {
-        if (context.type !== "data") {
-          return 0;
-        }
-        if (yStarted.has(context)) {
-          return 0;
-        }
-        yStarted.add(context);
-        return context.index * delayBetweenPoints;
-      }
+const revealPlugin = {
+  id: "reveal",
+  beforeDatasetsDraw(chartInstance) {
+    const { ctx: context, chartArea } = chartInstance;
+    if (!chartArea) {
+      return;
     }
-  };
+    const progress = chartInstance.$revealProgress ?? 1;
+    context.save();
+    context.beginPath();
+    context.rect(
+      chartArea.left,
+      chartArea.top,
+      (chartArea.right - chartArea.left) * progress,
+      chartArea.bottom - chartArea.top
+    );
+    context.clip();
+    chartInstance.$clipApplied = true;
+  },
+  afterDatasetsDraw(chartInstance) {
+    if (chartInstance.$clipApplied) {
+      chartInstance.ctx.restore();
+      chartInstance.$clipApplied = false;
+    }
+  }
 };
 
-let animationTimeout = null;
+let chart;
+const totalDuration = 2200;
+let revealAnimationId = null;
+
 const playGrowthAnimation = () => {
-  if (animationTimeout) {
-    clearTimeout(animationTimeout);
+  if (!chart) {
+    return;
   }
-  if (chart) {
-    chart.destroy();
+  if (revealAnimationId) {
+    cancelAnimationFrame(revealAnimationId);
   }
-  chart = createChart(true);
-  animationTimeout = setTimeout(() => {
-    if (chart) {
-      chart.options.animation = false;
-      chart.update();
+  const start = performance.now();
+  chart.$revealProgress = 0;
+  const step = (now) => {
+    const progress = Math.min((now - start) / totalDuration, 1);
+    chart.$revealProgress = progress;
+    chart.draw();
+    if (progress < 1) {
+      revealAnimationId = requestAnimationFrame(step);
+    } else {
+      revealAnimationId = null;
+      chart.$revealProgress = 1;
+      chart.draw();
     }
-  }, totalDuration + 100);
+  };
+  revealAnimationId = requestAnimationFrame(step);
 };
 
 const applyChartTheme = () => {
@@ -216,11 +186,11 @@ const setTheme = (theme) => {
   localStorage.setItem("theme", theme);
 };
 
-const buildChartOptions = (theme, animate) => ({
+const buildChartOptions = (theme) => ({
   responsive: true,
   maintainAspectRatio: false,
   color: theme.axis,
-  animation: animate ? buildGrowthAnimation() : false,
+  animation: false,
   interaction: {
     mode: "index",
     intersect: false
@@ -325,7 +295,7 @@ const buildChartOptions = (theme, animate) => ({
   }
 });
 
-const createChart = (animate) => {
+const createChart = () => {
   const theme = getThemeColors();
   const datasets = [
     {
@@ -364,13 +334,15 @@ const createChart = (animate) => {
   return new Chart(ctx, {
     type: "line",
     data: { datasets },
-    options: buildChartOptions(theme, animate)
+    options: buildChartOptions(theme),
+    plugins: [revealPlugin]
   });
 };
 
 const storedTheme = localStorage.getItem("theme");
 setTheme(storedTheme === "light" ? "light" : "dark");
-chart = createChart(false);
+chart = createChart();
+chart.$revealProgress = 1;
 
 themeToggle.addEventListener("click", () => {
   const current = document.body.getAttribute("data-theme") || "dark";
