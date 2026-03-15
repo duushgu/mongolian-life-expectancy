@@ -1,16 +1,43 @@
-const years = [
-  1920, 1930, 1940, 1950, 1960, 1965, 1970, 1975, 1980,
-  1985, 1990, 1995, 2000, 2005, 2010, 2015, 2020, 2025
-];
-
 const men = [
-  24.1, 27.5, 31.8, 39.5, 42.3, 58.2, 59.1, 60.1, 60.7,
-  61.2, 61.1, 60.2, 60.0, 62.1, 64.9, 65.8, 66.7, 68.2
+  { x: 1920, y: 24.1 },
+  { x: 1930, y: 27.5 },
+  { x: 1940, y: 31.8 },
+  { x: 1950, y: 39.5 },
+  { x: 1960, y: 42.3 },
+  { x: 1965, y: 58.2 },
+  { x: 1970, y: 59.1 },
+  { x: 1975, y: 60.1 },
+  { x: 1980, y: 60.7 },
+  { x: 1985, y: 61.2 },
+  { x: 1990, y: 61.1 },
+  { x: 1995, y: 60.2 },
+  { x: 2000, y: 60.0 },
+  { x: 2005, y: 62.1 },
+  { x: 2010, y: 64.9 },
+  { x: 2015, y: 65.8 },
+  { x: 2020, y: 66.7 },
+  { x: 2025, y: 68.2 }
 ];
 
 const women = [
-  25.4, 29.2, 33.9, 42.4, 46.8, 61.9, 63.3, 64.7, 65.5,
-  66.0, 65.9, 66.1, 66.7, 69.1, 74.3, 75.8, 76.2, 77.4
+  { x: 1920, y: 25.4 },
+  { x: 1930, y: 29.2 },
+  { x: 1940, y: 33.9 },
+  { x: 1950, y: 42.4 },
+  { x: 1960, y: 46.8 },
+  { x: 1965, y: 61.9 },
+  { x: 1970, y: 63.3 },
+  { x: 1975, y: 64.7 },
+  { x: 1980, y: 65.5 },
+  { x: 1985, y: 66.0 },
+  { x: 1990, y: 65.9 },
+  { x: 1995, y: 66.1 },
+  { x: 2000, y: 66.7 },
+  { x: 2005, y: 69.1 },
+  { x: 2010, y: 74.3 },
+  { x: 2015, y: 75.8 },
+  { x: 2020, y: 76.2 },
+  { x: 2025, y: 77.4 }
 ];
 
 const ctx = document.getElementById("lifeChart");
@@ -18,7 +45,6 @@ const ctx = document.getElementById("lifeChart");
 const chart = new Chart(ctx, {
   type: "line",
   data: {
-    labels: years,
     datasets: [
       {
         label: "Men",
@@ -67,9 +93,13 @@ const chart = new Chart(ctx, {
     },
     scales: {
       x: {
+        type: "linear",
         title: {
           display: true,
-          text: "Year"
+          text: "Jahr"
+        },
+        ticks: {
+          stepSize: 5
         },
         grid: {
           color: "rgba(28, 27, 25, 0.06)"
@@ -78,7 +108,7 @@ const chart = new Chart(ctx, {
       y: {
         title: {
           display: true,
-          text: "Life expectancy (years)"
+          text: "Lebenserwartung (Jahre)"
         },
         suggestedMin: 20,
         suggestedMax: 80,
