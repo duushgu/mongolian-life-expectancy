@@ -13,6 +13,7 @@
   --tooltip-border: rgba(140, 150, 165, 0.4);
   --tooltip-title: #f4f6fb;
   --tooltip-body: #d7dbe5;
+  --button-text: #0b0d12;
   --shadow: 0 28px 70px rgba(0, 0, 0, 0.45);
 }
 
@@ -61,6 +62,7 @@ body[data-theme="light"] {
   --tooltip-border: rgba(28, 27, 25, 0.2);
   --tooltip-title: #1c1b19;
   --tooltip-body: #3d3832;
+  --button-text: #ffffff;
   background: radial-gradient(circle at top, #ffffff 0%, var(--bg) 55%, #efe7dc 100%);
 }
 
@@ -161,6 +163,32 @@ h1 {
 .chart-wrap {
   height: 420px;
   padding: 16px 8px 0;
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 18px;
+}
+
+.animate-button {
+  border: none;
+  border-radius: 999px;
+  padding: 10px 22px;
+  background: var(--accent);
+  color: var(--button-text);
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+}
+
+.animate-button:hover {
+  filter: brightness(1.05);
+}
+
+.animate-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 @media (max-width: 720px) {

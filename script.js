@@ -51,6 +51,7 @@ const diff = men.map((point, index) => ({
 
 const ctx = document.getElementById("lifeChart");
 const themeToggle = document.querySelector(".theme-toggle");
+const animateButton = document.querySelector(".animate-button");
 
 const readCssVar = (name) =>
   getComputedStyle(document.body).getPropertyValue(name).trim();
@@ -213,6 +214,64 @@ const chart = new Chart(ctx, {
     }
   }
 });
+chart.options.animation = false;
+
+const totalDuration = 2200;
+const maxPoints = Math.max(men.length, women.length, diff.length);
+const delayBetweenPoints = totalDuration / maxPoints;
+const growthAnimation = {
+  x: {
+    type: "number",
+    easing: "linear",
+    duration: delayBetweenPoints,
+    from: NaN,
+    delay(context) {
+      if (context.type !== "data") {
+        return 0;
+      }
+      if (context.xStarted) {
+        return 0;
+      }
+      context.xStarted = true;
+      return context.index * delayBetweenPoints;
+    }
+  },
+  y: {
+    type: "number",
+    easing: "linear",
+    duration: delayBetweenPoints,
+    from(context) {
+      if (context.index === 0) {
+        return context.chart.scales.y.getPixelForValue(context.dataset.data[0].y);
+      }
+      const meta = context.chart.getDatasetMeta(context.datasetIndex);
+      return meta.data[context.index - 1].getProps(["y"], true).y;
+    },
+    delay(context) {
+      if (context.type !== "data") {
+        return 0;
+      }
+      if (context.yStarted) {
+        return 0;
+      }
+      context.yStarted = true;
+      return context.index * delayBetweenPoints;
+    }
+  }
+};
+
+let animationTimeout = null;
+const playGrowthAnimation = () => {
+  chart.options.animation = growthAnimation;
+  chart.reset();
+  chart.update();
+  if (animationTimeout) {
+    clearTimeout(animationTimeout);
+  }
+  animationTimeout = setTimeout(() => {
+    chart.options.animation = false;
+  }, totalDuration + 100);
+};
 
 const applyChartTheme = () => {
   const theme = getThemeColors();
@@ -255,3 +314,5 @@ themeToggle.addEventListener("click", () => {
   const current = document.body.getAttribute("data-theme") || "dark";
   setTheme(current === "dark" ? "light" : "dark");
 });
+
+animateButton.addEventListener("click", playGrowthAnimation);
