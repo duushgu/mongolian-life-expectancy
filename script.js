@@ -44,6 +44,11 @@ const women = [
   { x: 2025, y: 77.5 }
 ];
 
+const diff = men.map((point, index) => ({
+  x: point.x,
+  y: women[index].y - point.y
+}));
+
 const ctx = document.getElementById("lifeChart");
 
 const chart = new Chart(ctx, {
@@ -69,6 +74,18 @@ const chart = new Chart(ctx, {
         pointRadius: 3,
         pointHoverRadius: 5,
         tension: 0.3
+      },
+      {
+        label: "Differenz",
+        data: diff,
+        borderColor: "#888780",
+        backgroundColor: "rgba(136, 135, 128, 0.12)",
+        borderWidth: 2,
+        borderDash: [6, 4],
+        pointRadius: 2.5,
+        pointHoverRadius: 4,
+        tension: 0.3,
+        yAxisID: "y2"
       }
     ]
   },
@@ -96,7 +113,9 @@ const chart = new Chart(ctx, {
             const formatted = value.toLocaleString("de-DE", {
               maximumFractionDigits: 2
             });
-            return `${context.dataset.label}: ${formatted} Jahre`;
+            const unit =
+              context.dataset.label === "Differenz" ? " Jahre Differenz" : " Jahre";
+            return `${context.dataset.label}: ${formatted}${unit}`;
           }
         }
       }
@@ -130,6 +149,18 @@ const chart = new Chart(ctx, {
         suggestedMax: 80,
         grid: {
           color: "rgba(28, 27, 25, 0.08)"
+        }
+      },
+      y2: {
+        position: "right",
+        title: {
+          display: true,
+          text: "Differenz (Jahre)"
+        },
+        min: 0,
+        suggestedMax: 12,
+        grid: {
+          drawOnChartArea: false
         }
       }
     }
