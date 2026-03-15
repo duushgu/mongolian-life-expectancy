@@ -108,6 +108,16 @@ const chart = new Chart(ctx, {
       tooltip: {
         enabled: true,
         callbacks: {
+          title: (items) => {
+            if (!items.length) {
+              return "";
+            }
+            const xValue = items[0].parsed.x;
+            if (typeof xValue === "number" && Number.isFinite(xValue)) {
+              return Math.round(xValue).toString();
+            }
+            return String(xValue).replace(/[^\d]/g, "");
+          },
           label: (context) => {
             const value = context.parsed.y;
             const formatted = value.toLocaleString("de-DE", {
@@ -130,8 +140,12 @@ const chart = new Chart(ctx, {
         ticks: {
           stepSize: 5,
           callback: (value) => {
-            if (typeof value === "number" && Number.isFinite(value)) {
-              return Math.round(value).toString();
+            const numeric =
+              typeof value === "number"
+                ? value
+                : Number(String(value).replace(/[^\d.-]/g, ""));
+            if (Number.isFinite(numeric)) {
+              return Math.round(numeric).toString();
             }
             return String(value).replace(/[^\d]/g, "");
           }
