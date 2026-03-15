@@ -103,6 +103,7 @@ const delayBetweenPoints = totalDuration / maxPoints;
 const buildGrowthAnimation = () => {
   const xStarted = new WeakSet();
   const yStarted = new WeakSet();
+  const rStarted = new WeakSet();
   return {
     x: {
       type: "number",
@@ -117,6 +118,22 @@ const buildGrowthAnimation = () => {
           return 0;
         }
         xStarted.add(context);
+        return context.index * delayBetweenPoints;
+      }
+    },
+    radius: {
+      type: "number",
+      easing: "linear",
+      duration: delayBetweenPoints,
+      from: 0,
+      delay(context) {
+        if (context.type !== "data") {
+          return 0;
+        }
+        if (rStarted.has(context)) {
+          return 0;
+        }
+        rStarted.add(context);
         return context.index * delayBetweenPoints;
       }
     },
