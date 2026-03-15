@@ -94,7 +94,6 @@ const chart = new Chart(ctx, {
           label: (context) => {
             const value = context.parsed.y;
             const formatted = value.toLocaleString("de-DE", {
-              minimumFractionDigits: 1,
               maximumFractionDigits: 2
             });
             return `${context.dataset.label}: ${formatted} Jahre`;
