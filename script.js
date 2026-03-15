@@ -50,6 +50,22 @@ const diff = men.map((point, index) => ({
 }));
 
 const ctx = document.getElementById("lifeChart");
+const themeToggle = document.querySelector(".theme-toggle");
+
+const readCssVar = (name) =>
+  getComputedStyle(document.body).getPropertyValue(name).trim();
+
+const getThemeColors = () => ({
+  accent: readCssVar("--accent"),
+  accent2: readCssVar("--accent-2"),
+  diff: readCssVar("--diff"),
+  grid: readCssVar("--grid"),
+  axis: readCssVar("--axis"),
+  tooltipBg: readCssVar("--tooltip-bg"),
+  tooltipBorder: readCssVar("--tooltip-border"),
+  tooltipTitle: readCssVar("--tooltip-title"),
+  tooltipBody: readCssVar("--tooltip-body")
+});
 
 const chart = new Chart(ctx, {
   type: "line",
@@ -196,4 +212,46 @@ const chart = new Chart(ctx, {
       }
     }
   }
+});
+
+const applyChartTheme = () => {
+  const theme = getThemeColors();
+  chart.data.datasets[0].borderColor = theme.accent;
+  chart.data.datasets[0].backgroundColor = `${theme.accent}29`;
+  chart.data.datasets[1].borderColor = theme.accent2;
+  chart.data.datasets[1].backgroundColor = `${theme.accent2}29`;
+  chart.data.datasets[2].borderColor = theme.diff;
+  chart.data.datasets[2].backgroundColor = `${theme.diff}1f`;
+
+  chart.options.color = theme.axis;
+  chart.options.plugins.legend.labels.color = theme.axis;
+  chart.options.plugins.tooltip.backgroundColor = theme.tooltipBg;
+  chart.options.plugins.tooltip.titleColor = theme.tooltipTitle;
+  chart.options.plugins.tooltip.bodyColor = theme.tooltipBody;
+  chart.options.plugins.tooltip.borderColor = theme.tooltipBorder;
+
+  chart.options.scales.x.title.color = theme.axis;
+  chart.options.scales.x.ticks.color = theme.axis;
+  chart.options.scales.x.grid.color = theme.grid;
+  chart.options.scales.y.title.color = theme.axis;
+  chart.options.scales.y.ticks.color = theme.axis;
+  chart.options.scales.y.grid.color = theme.grid;
+  chart.options.scales.y2.title.color = theme.axis;
+  chart.options.scales.y2.ticks.color = theme.axis;
+
+  chart.update();
+};
+
+const setTheme = (theme) => {
+  document.body.setAttribute("data-theme", theme);
+  applyChartTheme();
+  localStorage.setItem("theme", theme);
+};
+
+const storedTheme = localStorage.getItem("theme");
+setTheme(storedTheme === "light" ? "light" : "dark");
+
+themeToggle.addEventListener("click", () => {
+  const current = document.body.getAttribute("data-theme") || "dark";
+  setTheme(current === "dark" ? "light" : "dark");
 });
