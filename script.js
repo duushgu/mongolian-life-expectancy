@@ -94,6 +94,17 @@ const colorWithAlpha = (color, alpha) => {
   return color;
 };
 
+const pointRadiusFor = (baseRadius) => (context) => {
+  const chartInstance = context.chart;
+  if (!chartInstance || !chartInstance.$isAnimating) {
+    return baseRadius;
+  }
+  const xValue =
+    typeof context.raw?.x === "number" ? context.raw.x : context.parsed.x;
+  const limit = chartInstance.$revealX ?? Number.NEGATIVE_INFINITY;
+  return xValue <= limit ? baseRadius : 0;
+};
+
 const revealPlugin = {
   id: "reveal",
   beforeDatasetsDraw(chartInstance) {
@@ -122,7 +133,7 @@ const revealPlugin = {
 };
 
 let chart;
-const totalDuration = 2200;
+const totalDuration = 3200;
 let revealAnimationId = null;
 
 const playGrowthAnimation = () => {
@@ -133,17 +144,27 @@ const playGrowthAnimation = () => {
     cancelAnimationFrame(revealAnimationId);
   }
   const start = performance.now();
+  chart.$isAnimating = true;
   chart.$revealProgress = 0;
   const step = (now) => {
     const progress = Math.min((now - start) / totalDuration, 1);
     chart.$revealProgress = progress;
-    chart.draw();
+    if (chart.scales?.x) {
+      const minX = chart.scales.x.min;
+      const maxX = chart.scales.x.max;
+      chart.$revealX = minX + (maxX - minX) * progress;
+    }
+    chart.update("none");
     if (progress < 1) {
       revealAnimationId = requestAnimationFrame(step);
     } else {
       revealAnimationId = null;
+      chart.$isAnimating = false;
       chart.$revealProgress = 1;
-      chart.draw();
+      if (chart.scales?.x) {
+        chart.$revealX = chart.scales.x.max;
+      }
+      chart.update("none");
     }
   };
   revealAnimationId = requestAnimationFrame(step);
@@ -304,7 +325,7 @@ const createChart = () => {
       borderColor: theme.accent,
       backgroundColor: colorWithAlpha(theme.accent, 0.16),
       borderWidth: 3,
-      pointRadius: 3,
+      pointRadius: pointRadiusFor(3),
       pointHoverRadius: 5,
       tension: 0.3
     },
@@ -314,7 +335,7 @@ const createChart = () => {
       borderColor: theme.accent2,
       backgroundColor: colorWithAlpha(theme.accent2, 0.16),
       borderWidth: 3,
-      pointRadius: 3,
+      pointRadius: pointRadiusFor(3),
       pointHoverRadius: 5,
       tension: 0.3
     },
@@ -325,7 +346,7 @@ const createChart = () => {
       backgroundColor: colorWithAlpha(theme.diff, 0.12),
       borderWidth: 2,
       borderDash: [6, 4],
-      pointRadius: 2.5,
+      pointRadius: pointRadiusFor(2.5),
       pointHoverRadius: 4,
       tension: 0.3,
       yAxisID: "y2"
