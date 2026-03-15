@@ -68,153 +68,33 @@ const getThemeColors = () => ({
   tooltipBody: readCssVar("--tooltip-body")
 });
 
-const chart = new Chart(ctx, {
-  type: "line",
-  data: {
-    datasets: [
-      {
-        label: "Männer",
-        data: men,
-        borderColor: "#69a7ff",
-        backgroundColor: "rgba(105, 167, 255, 0.16)",
-        borderWidth: 3,
-        pointRadius: 3,
-        pointHoverRadius: 5,
-        tension: 0.3
-      },
-      {
-        label: "Frauen",
-        data: women,
-        borderColor: "#f07fa1",
-        backgroundColor: "rgba(240, 127, 161, 0.16)",
-        borderWidth: 3,
-        pointRadius: 3,
-        pointHoverRadius: 5,
-        tension: 0.3
-      },
-      {
-        label: "Differenz",
-        data: diff,
-        borderColor: "#9aa0aa",
-        backgroundColor: "rgba(154, 160, 170, 0.12)",
-        borderWidth: 2,
-        borderDash: [6, 4],
-        pointRadius: 2.5,
-        pointHoverRadius: 4,
-        tension: 0.3,
-        yAxisID: "y2"
-      }
-    ]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    color: "#c9ced9",
-    interaction: {
-      mode: "index",
-      intersect: false
-    },
-    plugins: {
-      legend: {
-        display: true,
-        position: "top",
-        labels: {
-          usePointStyle: true,
-          padding: 18,
-          color: "#c9ced9"
-        }
-      },
-      tooltip: {
-        enabled: true,
-        backgroundColor: "rgba(20, 24, 33, 0.95)",
-        titleColor: "#f4f6fb",
-        bodyColor: "#d7dbe5",
-        borderColor: "rgba(140, 150, 165, 0.4)",
-        borderWidth: 1,
-        callbacks: {
-          title: (items) => {
-            if (!items.length) {
-              return "";
-            }
-            const xValue = items[0].parsed.x;
-            if (typeof xValue === "number" && Number.isFinite(xValue)) {
-              return Math.round(xValue).toString();
-            }
-            return String(xValue).replace(/[^\d]/g, "");
-          },
-          label: (context) => {
-            const value = context.parsed.y;
-            const formatted = value.toLocaleString("de-DE", {
-              maximumFractionDigits: 2
-            });
-            const unit =
-              context.dataset.label === "Differenz" ? " Jahre Differenz" : " Jahre";
-            return `${context.dataset.label}: ${formatted}${unit}`;
-          }
-        }
-      }
-    },
-    scales: {
-      x: {
-        type: "linear",
-        title: {
-          display: true,
-          text: "Jahr",
-          color: "#c9ced9"
-        },
-        ticks: {
-          stepSize: 5,
-          callback: (value) => {
-            const numeric =
-              typeof value === "number"
-                ? value
-                : Number(String(value).replace(/[^\d.-]/g, ""));
-            if (Number.isFinite(numeric)) {
-              return Math.round(numeric).toString();
-            }
-            return String(value).replace(/[^\d]/g, "");
-          },
-          color: "#c0c6d3"
-        },
-        grid: {
-          color: "rgba(200, 206, 217, 0.08)"
-        }
-      },
-      y: {
-        title: {
-          display: true,
-          text: "Lebenserwartung (Jahre)",
-          color: "#c9ced9"
-        },
-        min: 0,
-        suggestedMax: 80,
-        ticks: {
-          color: "#c0c6d3"
-        },
-        grid: {
-          color: "rgba(200, 206, 217, 0.08)"
-        }
-      },
-      y2: {
-        position: "right",
-        title: {
-          display: true,
-          text: "Differenz (Jahre)",
-          color: "#c9ced9"
-        },
-        min: 0,
-        suggestedMax: 12,
-        ticks: {
-          color: "#c0c6d3"
-        },
-        grid: {
-          drawOnChartArea: false
-        }
-      }
-    }
+const colorWithAlpha = (color, alpha) => {
+  if (color.startsWith("#")) {
+    const hex = color.slice(1);
+    const normalized =
+      hex.length === 3
+        ? hex
+            .split("")
+            .map((char) => char + char)
+            .join("")
+        : hex;
+    const red = parseInt(normalized.slice(0, 2), 16);
+    const green = parseInt(normalized.slice(2, 4), 16);
+    const blue = parseInt(normalized.slice(4, 6), 16);
+    return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
   }
-});
-chart.options.animation = false;
+  const rgbMatch = color.match(/rgba?\(([^)]+)\)/);
+  if (rgbMatch) {
+    const [red, green, blue] = rgbMatch[1]
+      .split(",")
+      .slice(0, 3)
+      .map((value) => Number(value.trim()));
+    return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+  }
+  return color;
+};
+
+let chart;
 
 const totalDuration = 2200;
 const maxPoints = Math.max(men.length, women.length, diff.length);
@@ -267,26 +147,32 @@ const buildGrowthAnimation = () => {
 
 let animationTimeout = null;
 const playGrowthAnimation = () => {
-  chart.stop();
-  chart.options.animation = buildGrowthAnimation();
-  chart.reset();
-  chart.update();
   if (animationTimeout) {
     clearTimeout(animationTimeout);
   }
+  if (chart) {
+    chart.destroy();
+  }
+  chart = createChart(true);
   animationTimeout = setTimeout(() => {
-    chart.options.animation = false;
+    if (chart) {
+      chart.options.animation = false;
+      chart.update();
+    }
   }, totalDuration + 100);
 };
 
 const applyChartTheme = () => {
+  if (!chart) {
+    return;
+  }
   const theme = getThemeColors();
   chart.data.datasets[0].borderColor = theme.accent;
-  chart.data.datasets[0].backgroundColor = `${theme.accent}29`;
+  chart.data.datasets[0].backgroundColor = colorWithAlpha(theme.accent, 0.16);
   chart.data.datasets[1].borderColor = theme.accent2;
-  chart.data.datasets[1].backgroundColor = `${theme.accent2}29`;
+  chart.data.datasets[1].backgroundColor = colorWithAlpha(theme.accent2, 0.16);
   chart.data.datasets[2].borderColor = theme.diff;
-  chart.data.datasets[2].backgroundColor = `${theme.diff}1f`;
+  chart.data.datasets[2].backgroundColor = colorWithAlpha(theme.diff, 0.12);
 
   chart.options.color = theme.axis;
   chart.options.plugins.legend.labels.color = theme.axis;
@@ -313,8 +199,161 @@ const setTheme = (theme) => {
   localStorage.setItem("theme", theme);
 };
 
+const buildChartOptions = (theme, animate) => ({
+  responsive: true,
+  maintainAspectRatio: false,
+  color: theme.axis,
+  animation: animate ? buildGrowthAnimation() : false,
+  interaction: {
+    mode: "index",
+    intersect: false
+  },
+  plugins: {
+    legend: {
+      display: true,
+      position: "top",
+      labels: {
+        usePointStyle: true,
+        padding: 18,
+        color: theme.axis
+      }
+    },
+    tooltip: {
+      enabled: true,
+      backgroundColor: theme.tooltipBg,
+      titleColor: theme.tooltipTitle,
+      bodyColor: theme.tooltipBody,
+      borderColor: theme.tooltipBorder,
+      borderWidth: 1,
+      callbacks: {
+        title: (items) => {
+          if (!items.length) {
+            return "";
+          }
+          const xValue = items[0].parsed.x;
+          if (typeof xValue === "number" && Number.isFinite(xValue)) {
+            return Math.round(xValue).toString();
+          }
+          return String(xValue).replace(/[^\d]/g, "");
+        },
+        label: (context) => {
+          const value = context.parsed.y;
+          const formatted = value.toLocaleString("de-DE", {
+            maximumFractionDigits: 2
+          });
+          const unit =
+            context.dataset.label === "Differenz" ? " Jahre Differenz" : " Jahre";
+          return `${context.dataset.label}: ${formatted}${unit}`;
+        }
+      }
+    }
+  },
+  scales: {
+    x: {
+      type: "linear",
+      title: {
+        display: true,
+        text: "Jahr",
+        color: theme.axis
+      },
+      ticks: {
+        stepSize: 5,
+        callback: (value) => {
+          const numeric =
+            typeof value === "number"
+              ? value
+              : Number(String(value).replace(/[^\d.-]/g, ""));
+          if (Number.isFinite(numeric)) {
+            return Math.round(numeric).toString();
+          }
+          return String(value).replace(/[^\d]/g, "");
+        },
+        color: theme.axis
+      },
+      grid: {
+        color: theme.grid
+      }
+    },
+    y: {
+      title: {
+        display: true,
+        text: "Lebenserwartung (Jahre)",
+        color: theme.axis
+      },
+      min: 0,
+      suggestedMax: 80,
+      ticks: {
+        color: theme.axis
+      },
+      grid: {
+        color: theme.grid
+      }
+    },
+    y2: {
+      position: "right",
+      title: {
+        display: true,
+        text: "Differenz (Jahre)",
+        color: theme.axis
+      },
+      min: 0,
+      suggestedMax: 12,
+      ticks: {
+        color: theme.axis
+      },
+      grid: {
+        drawOnChartArea: false
+      }
+    }
+  }
+});
+
+const createChart = (animate) => {
+  const theme = getThemeColors();
+  const datasets = [
+    {
+      label: "Männer",
+      data: men,
+      borderColor: theme.accent,
+      backgroundColor: colorWithAlpha(theme.accent, 0.16),
+      borderWidth: 3,
+      pointRadius: 3,
+      pointHoverRadius: 5,
+      tension: 0.3
+    },
+    {
+      label: "Frauen",
+      data: women,
+      borderColor: theme.accent2,
+      backgroundColor: colorWithAlpha(theme.accent2, 0.16),
+      borderWidth: 3,
+      pointRadius: 3,
+      pointHoverRadius: 5,
+      tension: 0.3
+    },
+    {
+      label: "Differenz",
+      data: diff,
+      borderColor: theme.diff,
+      backgroundColor: colorWithAlpha(theme.diff, 0.12),
+      borderWidth: 2,
+      borderDash: [6, 4],
+      pointRadius: 2.5,
+      pointHoverRadius: 4,
+      tension: 0.3,
+      yAxisID: "y2"
+    }
+  ];
+  return new Chart(ctx, {
+    type: "line",
+    data: { datasets },
+    options: buildChartOptions(theme, animate)
+  });
+};
+
 const storedTheme = localStorage.getItem("theme");
 setTheme(storedTheme === "light" ? "light" : "dark");
+chart = createChart(false);
 
 themeToggle.addEventListener("click", () => {
   const current = document.body.getAttribute("data-theme") || "dark";
