@@ -58,8 +58,8 @@ const chart = new Chart(ctx, {
       {
         label: "Männer",
         data: men,
-        borderColor: "#2a6fdb",
-        backgroundColor: "rgba(42, 111, 219, 0.12)",
+        borderColor: "#69a7ff",
+        backgroundColor: "rgba(105, 167, 255, 0.16)",
         borderWidth: 3,
         pointRadius: 3,
         pointHoverRadius: 5,
@@ -68,8 +68,8 @@ const chart = new Chart(ctx, {
       {
         label: "Frauen",
         data: women,
-        borderColor: "#d4476f",
-        backgroundColor: "rgba(212, 71, 111, 0.12)",
+        borderColor: "#f07fa1",
+        backgroundColor: "rgba(240, 127, 161, 0.16)",
         borderWidth: 3,
         pointRadius: 3,
         pointHoverRadius: 5,
@@ -78,8 +78,8 @@ const chart = new Chart(ctx, {
       {
         label: "Differenz",
         data: diff,
-        borderColor: "#888780",
-        backgroundColor: "rgba(136, 135, 128, 0.12)",
+        borderColor: "#9aa0aa",
+        backgroundColor: "rgba(154, 160, 170, 0.12)",
         borderWidth: 2,
         borderDash: [6, 4],
         pointRadius: 2.5,
@@ -92,6 +92,7 @@ const chart = new Chart(ctx, {
   options: {
     responsive: true,
     maintainAspectRatio: false,
+    color: "#c9ced9",
     interaction: {
       mode: "index",
       intersect: false
@@ -102,11 +103,17 @@ const chart = new Chart(ctx, {
         position: "top",
         labels: {
           usePointStyle: true,
-          padding: 18
+          padding: 18,
+          color: "#c9ced9"
         }
       },
       tooltip: {
         enabled: true,
+        backgroundColor: "rgba(20, 24, 33, 0.95)",
+        titleColor: "#f4f6fb",
+        bodyColor: "#d7dbe5",
+        borderColor: "rgba(140, 150, 165, 0.4)",
+        borderWidth: 1,
         callbacks: {
           title: (items) => {
             if (!items.length) {
@@ -135,7 +142,8 @@ const chart = new Chart(ctx, {
         type: "linear",
         title: {
           display: true,
-          text: "Jahr"
+          text: "Jahr",
+          color: "#c9ced9"
         },
         ticks: {
           stepSize: 5,
@@ -148,31 +156,40 @@ const chart = new Chart(ctx, {
               return Math.round(numeric).toString();
             }
             return String(value).replace(/[^\d]/g, "");
-          }
+          },
+          color: "#c0c6d3"
         },
         grid: {
-          color: "rgba(28, 27, 25, 0.06)"
+          color: "rgba(200, 206, 217, 0.08)"
         }
       },
       y: {
         title: {
           display: true,
-          text: "Lebenserwartung (Jahre)"
+          text: "Lebenserwartung (Jahre)",
+          color: "#c9ced9"
         },
         min: 0,
         suggestedMax: 80,
+        ticks: {
+          color: "#c0c6d3"
+        },
         grid: {
-          color: "rgba(28, 27, 25, 0.08)"
+          color: "rgba(200, 206, 217, 0.08)"
         }
       },
       y2: {
         position: "right",
         title: {
           display: true,
-          text: "Differenz (Jahre)"
+          text: "Differenz (Jahre)",
+          color: "#c9ced9"
         },
         min: 0,
         suggestedMax: 12,
+        ticks: {
+          color: "#c0c6d3"
+        },
         grid: {
           drawOnChartArea: false
         }
