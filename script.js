@@ -49,7 +49,7 @@ const chart = new Chart(ctx, {
   data: {
     datasets: [
       {
-        label: "Men",
+        label: "Maenner",
         data: men,
         borderColor: "#2a6fdb",
         backgroundColor: "rgba(42, 111, 219, 0.12)",
@@ -59,7 +59,7 @@ const chart = new Chart(ctx, {
         tension: 0.3
       },
       {
-        label: "Women",
+        label: "Frauen",
         data: women,
         borderColor: "#d4476f",
         backgroundColor: "rgba(212, 71, 111, 0.12)",
@@ -117,7 +117,7 @@ const chart = new Chart(ctx, {
           display: true,
           text: "Lebenserwartung (Jahre)"
         },
-        suggestedMin: 20,
+        min: 0,
         suggestedMax: 80,
         grid: {
           color: "rgba(28, 27, 25, 0.08)"
