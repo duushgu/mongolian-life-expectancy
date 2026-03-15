@@ -219,50 +219,56 @@ chart.options.animation = false;
 const totalDuration = 2200;
 const maxPoints = Math.max(men.length, women.length, diff.length);
 const delayBetweenPoints = totalDuration / maxPoints;
-const growthAnimation = {
-  x: {
-    type: "number",
-    easing: "linear",
-    duration: delayBetweenPoints,
-    from: NaN,
-    delay(context) {
-      if (context.type !== "data") {
-        return 0;
+
+const buildGrowthAnimation = () => {
+  const xStarted = new WeakSet();
+  const yStarted = new WeakSet();
+  return {
+    x: {
+      type: "number",
+      easing: "linear",
+      duration: delayBetweenPoints,
+      from: NaN,
+      delay(context) {
+        if (context.type !== "data") {
+          return 0;
+        }
+        if (xStarted.has(context)) {
+          return 0;
+        }
+        xStarted.add(context);
+        return context.index * delayBetweenPoints;
       }
-      if (context.xStarted) {
-        return 0;
-      }
-      context.xStarted = true;
-      return context.index * delayBetweenPoints;
-    }
-  },
-  y: {
-    type: "number",
-    easing: "linear",
-    duration: delayBetweenPoints,
-    from(context) {
-      if (context.index === 0) {
-        return context.chart.scales.y.getPixelForValue(context.dataset.data[0].y);
-      }
-      const meta = context.chart.getDatasetMeta(context.datasetIndex);
-      return meta.data[context.index - 1].getProps(["y"], true).y;
     },
-    delay(context) {
-      if (context.type !== "data") {
-        return 0;
+    y: {
+      type: "number",
+      easing: "linear",
+      duration: delayBetweenPoints,
+      from(context) {
+        if (context.index === 0) {
+          return context.chart.scales.y.getPixelForValue(context.dataset.data[0].y);
+        }
+        const meta = context.chart.getDatasetMeta(context.datasetIndex);
+        return meta.data[context.index - 1].getProps(["y"], true).y;
+      },
+      delay(context) {
+        if (context.type !== "data") {
+          return 0;
+        }
+        if (yStarted.has(context)) {
+          return 0;
+        }
+        yStarted.add(context);
+        return context.index * delayBetweenPoints;
       }
-      if (context.yStarted) {
-        return 0;
-      }
-      context.yStarted = true;
-      return context.index * delayBetweenPoints;
     }
-  }
+  };
 };
 
 let animationTimeout = null;
 const playGrowthAnimation = () => {
-  chart.options.animation = growthAnimation;
+  chart.stop();
+  chart.options.animation = buildGrowthAnimation();
   chart.reset();
   chart.update();
   if (animationTimeout) {
