@@ -49,7 +49,7 @@ const chart = new Chart(ctx, {
   data: {
     datasets: [
       {
-        label: "Maenner",
+        label: "Männer",
         data: men,
         borderColor: "#2a6fdb",
         backgroundColor: "rgba(42, 111, 219, 0.12)",
